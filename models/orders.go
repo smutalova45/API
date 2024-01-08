@@ -7,8 +7,8 @@ import (
 )
 
 type Orders struct {
-	Id        uuid.UUID
-	Amount    int
-	CreatedAt time.Time
-	UserId    uuid.UUID
+	Id        uuid.UUID `json:"id"`
+	Amount    int       `json:"amount"`
+	CreatedAt time.Time `json:"createdat"`
+	UserId    uuid.UUID `json:"user_id"`
 }

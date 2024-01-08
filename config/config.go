@@ -1,5 +1,13 @@
 package config
 
+import (
+	"fmt"
+	"os"
+
+	"github.com/joho/godotenv"
+	"github.com/spf13/cast"
+)
+
 type Config struct {
 	PostgresHost     string
 	PostgresPort     string
@@ -9,11 +17,22 @@ type Config struct {
 }
 
 func Load() Config {
+	if err := godotenv.Load(); err != nil {
+		fmt.Println("error!", err)
+	}
 	cfg := Config{}
-	cfg.PostgresHost = "localhost"
-	cfg.PostgresPort = "5432"
-	cfg.PostgresUser = "person"
-	cfg.PostgresPassword = "12345"
-	cfg.PostgresDB = "userorder"
+	cfg.PostgresHost = cast.ToString(getOrReturnDefault("POSTGRES_HOST", "localhost"))
+	cfg.PostgresPort = cast.ToString(getOrReturnDefault("POSTGRES_PORT", ":5432"))
+	cfg.PostgresUser = cast.ToString(getOrReturnDefault("POSTGRES_USER", "person"))
+	cfg.PostgresPassword = cast.ToString(getOrReturnDefault("POSTGRES_PASSWORD", "your password"))
+	cfg.PostgresDB = cast.ToString(getOrReturnDefault("POSTGRES_DB", "your db"))
 	return cfg
+}
+
+func getOrReturnDefault(key string, defaultValue interface{}) interface{} {
+	value := os.Getenv(key)
+	if value != "" {
+		return value
+	}
+	return defaultValue
 }

@@ -59,3 +59,14 @@ func (p productsRepo) Delete(id uuid.UUID) error {
 	}
 	return nil
 }
+func (p productsRepo) GetById(id uuid.UUID) (models.Products, error) {
+	product := models.Products{}
+	if err := p.DB.QueryRow(`select id, productname,price from products where id=$1`, id).Scan(
+		&product.Id,
+		&product.Name,
+		&product.Price,
+	); err != nil {
+		return models.Products{}, err
+	}
+	return product, nil
+}

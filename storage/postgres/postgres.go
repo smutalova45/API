@@ -12,7 +12,7 @@ type Storage struct {
 	UsersStorage    usersRepo
 	OrdersStorage   ordersRepo
 	ProductsStorage productsRepo
-	OrderProducts   orderproductsRepo
+	OrderProductsStorage   orderproductsRepo
 }
 
 func New(cfg config.Config) (Storage, error) {
@@ -31,7 +31,7 @@ func New(cfg config.Config) (Storage, error) {
 		UsersStorage:    usersRepo,
 		ProductsStorage: productsRepo,
 		OrdersStorage:   ordersRepo,
-		OrderProducts:   orderproductsRepo,
+		OrderProductsStorage:   orderproductsRepo,
 	}, nil
 
 }

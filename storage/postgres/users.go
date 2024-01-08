@@ -11,13 +11,11 @@ type usersRepo struct {
 	DB *sql.DB
 }
 
-
 func NewUsersRepo(db *sql.DB) usersRepo {
 	return usersRepo{
 		DB: db,
 	}
 }
-
 
 func (u usersRepo) Insert(users models.Users) (string, error) {
 	id := uuid.New()
@@ -26,7 +24,6 @@ func (u usersRepo) Insert(users models.Users) (string, error) {
 	}
 	return id.String(), nil
 }
-
 
 func (u usersRepo) GetList() ([]models.Users, error) {
 	rows, err := u.DB.Query(`select * from users `)
@@ -45,7 +42,6 @@ func (u usersRepo) GetList() ([]models.Users, error) {
 
 }
 
-
 func (u usersRepo) Update(us models.Users) error {
 	_, err := u.DB.Exec(`update users set phone = $1 where id =$2`, us.Phone, us.Id)
 	if err != nil {
@@ -53,7 +49,6 @@ func (u usersRepo) Update(us models.Users) error {
 	}
 	return nil
 }
-
 
 func (u usersRepo) Delete(id uuid.UUID) error {
 	if _, err := u.DB.Exec(`delete from orders where user_id =$1`, id); err != nil {
@@ -64,4 +59,17 @@ func (u usersRepo) Delete(id uuid.UUID) error {
 	}
 	return nil
 
+}
+
+func (u usersRepo) GetById(id uuid.UUID) (models.Users, error) {
+	users := models.Users{}
+	if err := u.DB.QueryRow(`select id, firstname,email,phone from users where id=$1`, id).Scan(
+		&users.Id,
+		&users.Firstname,
+		&users.Email,
+		&users.Phone,
+	); err != nil {
+		return models.Users{}, err
+	}
+	return users, nil
 }

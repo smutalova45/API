@@ -60,3 +60,17 @@ func (or orderproductsRepo) Delete(id uuid.UUID) error {
 	return nil
 
 }
+func (or orderproductsRepo) GetById(id uuid.UUID) (models.Orderproducts, error) {
+	orderproduct := models.Orderproducts{}
+	if err := or.DB.QueryRow(`select order id , order_id , product_id, quantity, price from orderproducts where id=$1`, id).Scan(
+		&orderproduct.Id,
+		&orderproduct.OrderId,
+		&orderproduct.ProductId,
+		&orderproduct.Quantity,
+		&orderproduct.Price,
+	); err != nil {
+		return models.Orderproducts{}, err
+	}
+	return orderproduct, nil
+
+}

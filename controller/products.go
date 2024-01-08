@@ -1,92 +1,122 @@
 package controller
 
 import (
+	"encoding/json"
 	"fmt"
+	"net/http"
 
 	"github.com/google/uuid"
 	"main.go/models"
 )
 
-func (c Controller) Createproducts() {
-	product := getproductinfo()
+func (c Controller) Products(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodPost:
+		c.Createproducts(w, r)
+	case http.MethodGet:
+		values := r.URL.Query()
+		_, ok := values["id"]
+		if ok {
+			c.GetByIdProducts(w, r)
+		} else {
+			c.GetListproducts(w, r)
+		}
+	case http.MethodPut:
+		c.Updateproducts(w, r)
+	case http.MethodDelete:
+		c.Deleteproducts(w, r)
+	}
+}
+func (c Controller) Createproducts(w http.ResponseWriter, r *http.Request) {
+	product := models.Products{}
+	if err := json.NewDecoder(r.Body).Decode(&product); err != nil {
+		fmt.Println("error while reading data to products ", err.Error())
+		hanldeResponse(w, 500, err.Error())
+		return
+	}
 	id, err := c.Storage.ProductsStorage.Insert(product)
 	if err != nil {
-		fmt.Println("error inserting category ")
+		fmt.Println("error inserting product", err.Error())
+		hanldeResponse(w, 500, err.Error())
 		return
 	}
-	fmt.Println("id ", id)
+	id1, err := uuid.Parse(id)
+
+	resp, err := c.Storage.ProductsStorage.GetById(id1)
+	if err != nil {
+		fmt.Println(err.Error())
+		hanldeResponse(w, 500, err.Error())
+		return
+	}
+	hanldeResponse(w, 200, resp)
 
 }
 
-func (c Controller) Getprpoducts() {
+func (c Controller) GetListproducts(w http.ResponseWriter, r *http.Request) {
 	products, err := c.Storage.ProductsStorage.Getlist()
 	if err != nil {
-		fmt.Println("error list products ", err.Error())
+		fmt.Println("error while getting list products ", err.Error())
+		hanldeResponse(w, 500, err.Error())
 		return
 	}
-	fmt.Println(products)
+	hanldeResponse(w, 200, products)
 }
-func (c Controller) Updateproducts() {
-	update := getproductinfo()
-	err := c.Storage.ProductsStorage.Update(update)
+func (c Controller) Updateproducts(w http.ResponseWriter, r *http.Request) {
+	product := models.Products{}
+	if err := json.NewDecoder(r.Body).Decode(&product); err != nil {
+		fmt.Println("error while updting products", err.Error())
+		hanldeResponse(w, 500, err.Error())
+		return
+	}
+	err := c.Storage.ProductsStorage.Update(product)
 	if err != nil {
-		fmt.Println("error updating products", err.Error())
+		fmt.Println("error while updating products", err.Error())
+		hanldeResponse(w, 500, err.Error())
 		return
 	}
-	if update.Id.String() != "" {
-		fmt.Println("UPDATED")
-	} else {
-		fmt.Println("CREATED")
-	}
+	hanldeResponse(w, http.StatusAccepted, product.Id)
 
 }
 
-func (c Controller) Deleteproducts() {
-	idstr := ""
-	fmt.Print("enter id: ")
-	fmt.Scan(&idstr)
+func (c Controller) Deleteproducts(w http.ResponseWriter, r *http.Request) {
+	values := r.URL.Query()
+	idstr := values["id"][0]
 	id, err := uuid.Parse(idstr)
 	if err != nil {
-		fmt.Println("error while pasing in 50 ", err.Error())
+		fmt.Println("error while parsing id ", err.Error())
+		hanldeResponse(w, 500, err.Error())
 		return
 	}
 	err = c.Storage.ProductsStorage.Delete(id)
-	fmt.Println("delete7d products with this id: ", idstr)
+	if err != nil {
+		fmt.Println("error while deleting products", err.Error())
+		hanldeResponse(w, 500, err.Error())
+		return
+	}
+	hanldeResponse(w, 200, idstr)
 
 }
 
-func getproductinfo() models.Products {
-	var (
-		idstr, name string
-		price, cmd  int
-	)
-a:
-	fmt.Println("enter command : 1.create 2. update ")
-	fmt.Scan(&cmd)
-	if cmd == 2 {
-		fmt.Print("enter id to update : ")
-		fmt.Scan(&idstr)
-		fmt.Print("enter new price: ")
-		fmt.Scan(&price)
-	} else if cmd == 1 {
-		fmt.Print("enter name : ")
-		fmt.Scan(&name)
-		fmt.Print("enter price: ")
-		fmt.Scan(&price)
-	} else {
-		fmt.Println("not found cmd ")
-		goto a
+func (c Controller) GetByIdProducts(w http.ResponseWriter, r *http.Request) {
+	values := r.URL.Query()
+	idstr := values["id"][0]
+	id, err := uuid.Parse(idstr)
+	if err != nil {
+		fmt.Println(err.Error())
+		hanldeResponse(w, 500, err.Error())
+		return
 	}
-	if idstr != "" {
-		return models.Products{
-			Id:    uuid.MustParse(idstr),
-			Name:  name,
-			Price: price,
-		}
+	p, err := c.Storage.ProductsStorage.GetById(id)
+	if err != nil {
+		fmt.Println(err.Error())
+		hanldeResponse(w, 500, err.Error())
+		return
 	}
-	return models.Products{
-		Name:  name,
-		Price: price,
+	js, err := json.Marshal(p)
+	if err != nil {
+		fmt.Println("error while marshelling", err.Error())
+		hanldeResponse(w, 500, err.Error())
 	}
+	hanldeResponse(w, 200, js)
 
 }
