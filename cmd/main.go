@@ -18,13 +18,7 @@ func main() {
 	}
 	defer store.DB.Close()
 	con := controller.New(store)
-	///
-	// con.CreateU()
-	// con.Getu()
-	// con.Deleteu()
-	// con.Createp()
-	// con.Createo()
-	// con.Createopro()
-	con.Deleteusers()
+con.GetListUsers()
+	
 
 }
