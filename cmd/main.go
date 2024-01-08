@@ -28,6 +28,3 @@ func main() {
 	con.Deleteusers()
 
 }
-func oop() {
-
-}
